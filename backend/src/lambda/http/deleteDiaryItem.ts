@@ -12,10 +12,10 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   logger.info('Processing deleteDiaryItem event', { event })
 
   const userId = getUserId(event)
-  const diaryDiaryId = event.pathParameters.diaryDiaryId
+  const diaryItemId = event.pathParameters.diaryItemId
   
   try {
-    await deleteDiaryItem(userId, diaryDiaryId)
+    await deleteDiaryItem(userId, diaryItemId)
   } catch (e) {
     if (e.message == 'Not Found') {
       return {

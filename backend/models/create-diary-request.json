@@ -13,7 +13,7 @@
       }
     },
     "required": [
-      "name",
+      "title",
       "body"
     ],
     "additionalProperties": false
