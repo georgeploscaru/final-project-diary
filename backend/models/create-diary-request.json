@@ -1,18 +1,20 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "todo",
+    "title": "diary",
     "type": "object",
     "properties": {
-      "name": {
+      "title": {
         "type": "string",
         "minLength": 2
       },
-      "dueDate": {
-        "type": "string"
+      "body": {
+        "type": "string",
+        "minLength": 10
       }
     },
     "required": [
-      "name"
+      "name",
+      "body"
     ],
     "additionalProperties": false
 }

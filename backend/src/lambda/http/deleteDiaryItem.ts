@@ -1,23 +1,21 @@
 import 'source-map-support/register'
 
-import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
+import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 
-import { updateTodo } from '../../businessLogic/todos'
-import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
+import { deleteDiaryItem } from '../../businessLogic/diaryItems'
 import { createLogger } from '../../utils/logger'
 import { getUserId } from '../utils'
 
-const logger = createLogger('updateTodo')
+const logger = createLogger('deleteDiaryItem')
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  logger.info('Processing updateTodo event', { event })
+  logger.info('Processing deleteDiaryItem event', { event })
 
   const userId = getUserId(event)
-  const todoId = event.pathParameters.todoId
-  const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-
+  const diaryDiaryId = event.pathParameters.diaryDiaryId
+  
   try {
-    await updateTodo(userId, todoId, updatedTodo)
+    await deleteDiaryItem(userId, diaryDiaryId)
   } catch (e) {
     if (e.message == 'Not Found') {
       return {
@@ -37,7 +35,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   }
 
   return {
-    statusCode: 200,
+    statusCode: 204,
     headers: {
       'Access-Control-Allow-Origin': '*'
     },

@@ -1,4 +1,4 @@
-service: serverless-todo-app
+service: serverless-diary-app
 
 plugins:
   - serverless-webpack
@@ -18,41 +18,41 @@ provider:
     apiGateway: true
 
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
-    TODOS_USER_INDEX: TodosUserIndex
-    AUTH_0_JWKS_URL: https://gepl.eu.auth0.com/.well-known/jwks.json
-    ATTACHMENTS_S3_BUCKET: gepl-todos-attachments-${self:provider.stage}
+    DIARY_ITEMS_TABLE: Diary-${self:provider.stage}
+    DIARY_USER_INDEX: DiaryUserIndex
+    AUTH_0_JWKS_URL: https://diary.eu.auth0.com/.well-known/jwks.json
+    ATTACHMENTS_S3_BUCKET: gepl-diary-attachments-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
 custom:
   documentation:
     models:
-      - name: TodoRequest
+      - name: DiaryItemRequest
         contentType: application/json
-        schema: ${file(models/create-todo-request.json)}
+        schema: ${file(models/create-diary-request.json)}
 
 functions:
 
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  GetTodos:
-    handler: src/lambda/http/getTodos.handler
+  GetDiaryItems:
+    handler: src/lambda/http/getDiaryItems.handler
     events:
       - http:
           method: get
-          path: todos
+          path: diary-items
           cors: true
           auth: Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_USER_INDEX}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DIARY_ITEMS_TABLE}/index/${self:provider.environment.DIARY_USER_INDEX}
       - Effect: Allow
         Action:
           - dynamodb:Scan
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DIARY_ITEMS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -68,25 +68,25 @@ functions:
         Resource:
           - "*"
 
-  CreateTodo:
-    handler: src/lambda/http/createTodo.handler
+  CreateDiaryItem:
+    handler: src/lambda/http/createDiaryItem.handler
     events:
       - http:
           method: post
-          path: todos
+          path: diary-items
           cors: true
           auth: Auth
           reqValidatorName: RequestBodyValidator
           documentation:
-            summary: Create a new todo
-            description: Create a new todo
+            summary: Create a new diary item
+            description: Create a new diary item
             requestModels:
-              'application/json': TodoRequest
+              'application/json': DiaryItemRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DIARY_ITEMS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -102,12 +102,12 @@ functions:
         Resource:
           - "*"
 
-  UpdateTodo:
-    handler: src/lambda/http/updateTodo.handler
+  UpdateDiaryItem:
+    handler: src/lambda/http/updateDiaryItem.handler
     events:
       - http:
           method: patch
-          path: todos/{todoId}
+          path: diary-items/{diaryItemId}
           cors: true
           auth: Auth
     iamRoleStatements:
@@ -115,7 +115,7 @@ functions:
         Action:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DIARY_ITEMS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -131,12 +131,12 @@ functions:
         Resource:
           - "*"
 
-  DeleteTodo:
-    handler: src/lambda/http/deleteTodo.handler
+  DeleteDiaryItem:
+    handler: src/lambda/http/deleteDiaryItem.handler
     events:
       - http:
           method: delete
-          path: todos/{todoId}
+          path: diary-items/{diaryItemId}
           cors: true
           auth: Auth
     iamRoleStatements:
@@ -144,7 +144,7 @@ functions:
         Action:
           - dynamodb:DeleteItem
           - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DIARY_ITEMS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -165,7 +165,7 @@ functions:
     events:
       - http:
           method: post
-          path: todos/{todoId}/attachment
+          path: diary-items/{diaryItemId}/attachment
           cors: true
           auth: Auth
     iamRoleStatements:
@@ -177,7 +177,7 @@ functions:
         Action:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DIARY_ITEMS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -216,23 +216,23 @@ resources:
         ResponseType: DEFAULT_5XX
         RestApiId:
           Ref: ApiGatewayRestApi
-    TodosTable:
+    DiaryItemsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: todoId
+          - AttributeName: diaryItemId
             AttributeType: S
           - AttributeName: userId
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          - AttributeName: todoId
+          - AttributeName: diaryItemId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:provider.environment.TODOS_TABLE}
+        TableName: ${self:provider.environment.DIARY_ITEMS_TABLE}
         GlobalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.TODOS_USER_INDEX}
+          - IndexName: ${self:provider.environment.DIARY_USER_INDEX}
             KeySchema:
               - AttributeName: userId
                 KeyType: HASH

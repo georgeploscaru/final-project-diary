@@ -3,7 +3,7 @@ import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 import * as uuid from 'uuid'
 
-import { generateUploadUrl, updateAttachmentUrl } from '../../businessLogic/todos'
+import { generateUploadUrl, updateAttachmentUrl } from '../../businessLogic/diaryItems'
 import { createLogger } from '../../utils/logger'
 import { getUserId } from '../utils'
 
@@ -13,12 +13,12 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   logger.info('Processing generateUploadUrl event', { event })
 
   const userId = getUserId(event)
-  const todoId = event.pathParameters.todoId
+  const diaryItemId = event.pathParameters.diaryItemId
   const attachmentId = uuid.v4()
 
   const uploadUrl = await generateUploadUrl(attachmentId)
   try {
-    await updateAttachmentUrl(userId, todoId, attachmentId)
+    await updateAttachmentUrl(userId, diaryItemId, attachmentId)
   } catch (e) {
     if (e.message == 'Not Found') {
       return {
